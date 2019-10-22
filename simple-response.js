@@ -1,7 +1,8 @@
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE',
-    'Access-Control-Allow-Headers': 'Authorization, X-Auth-Token',
+    'Access-Control-Allow-Headers':
+        'Authorization, X-Auth-Token, content-type, Content-Type',
 }
 const R = (status = 200, headers = {}, body = '') => {
     return {
