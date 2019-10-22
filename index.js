@@ -118,6 +118,10 @@ if (define.delete) {
         })
     })
 }
+r.options(`/`, async (req, params) => {
+    return text('OK').toResponse()
+})
+
 async function handleRequest(request) {
     return await r.route(request)
 }
