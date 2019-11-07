@@ -1,45 +1,37 @@
 const Router = require('./router')
+const shortid = require('shortid')
 const { status, json, text, html } = require('./simple-response')
-const define = require('./define.js')
 const bindings = require('./bindings.js')
+const define = require('./define.js').handlers(
+    { status, json, text, html },
+    { binding }
+)
+
 /**
  * Example of how router can be used in an application
  *  */
 addEventListener('fetch', event => {
     event.respondWith(handleRequest(event.request))
 })
-
 const r = new Router()
-if (define.get) {
-    Object.keys(define.get).forEach(k => {
-        r.get(k, async (req, params) => {
+;[('get', 'post', 'put', 'delete')].forEach(method => {
+    if (!define[method]) {
+        return
+    }
+    Object.keys(define[method]).forEach(k => {
+        r[method](k, async (req, params, log) => {
             try {
-                return (await define.get[k](
-                    req,
-                    params,
-                    {
-                        status,
-                        json,
-                        text,
-                        html,
-                    },
-                    bindings
-                )).toResponse()
+                return (await define[method][k](req, params, log)).toResponse()
             } catch (e) {
                 if (define.error) {
                     return (await define.error(
                         e,
                         req,
                         params,
-                        {
-                            status,
-                            json,
-                            text,
-                            html,
-                        },
-                        bindings
+                        log
                     )).toResponse()
                 } else {
+                    log.err(e.toString())
                     return status(500)
                         .json({ error: e.toString() })
                         .toResponse()
@@ -47,126 +39,34 @@ if (define.get) {
             }
         })
     })
-}
-if (define.post) {
-    Object.keys(define.post).forEach(k => {
-        r.post(k, async (req, params) => {
-            try {
-                return (await define.post[k](
-                    req,
-                    params,
-                    {
-                        status,
-                        json,
-                        text,
-                        html,
-                    },
-                    bindings
-                )).toResponse()
-            } catch (e) {
-                if (define.error) {
-                    return (await define.error(
-                        e,
-                        req,
-                        params,
-                        {
-                            status,
-                            json,
-                            text,
-                            html,
-                        },
-                        bindings
-                    )).toResponse()
-                } else {
-                    return status(500)
-                        .json({ error: e.toString() })
-                        .toResponse()
-                }
-            }
-        })
-    })
-}
+})
 
-if (define.put) {
-    Object.keys(define.put).forEach(k => {
-        r.put(k, async (req, params) => {
-            try {
-                return (await define.put[k](
-                    req,
-                    params,
-                    {
-                        status,
-                        json,
-                        text,
-                        html,
-                    },
-                    bindings
-                )).toResponse()
-            } catch (e) {
-                if (define.error) {
-                    return (await define.error(
-                        e,
-                        req,
-                        params,
-                        {
-                            status,
-                            json,
-                            text,
-                            html,
-                        },
-                        bindings
-                    )).toResponse()
-                } else {
-                    return status(500)
-                        .json({ error: e.toString() })
-                        .toResponse()
-                }
-            }
-        })
-    })
-}
-if (define.delete) {
-    Object.keys(define.delete).forEach(k => {
-        r.delete(k, async (req, params) => {
-            try {
-                return (await define.delete[k](
-                    req,
-                    params,
-                    {
-                        status,
-                        json,
-                        text,
-                        html,
-                    },
-                    bindings
-                )).toResponse()
-            } catch (e) {
-                if (define.error) {
-                    return (await define.error(
-                        e,
-                        req,
-                        params,
-                        {
-                            status,
-                            json,
-                            text,
-                            html,
-                        },
-                        bindings
-                    )).toResponse()
-                } else {
-                    return status(500)
-                        .json({ error: e.toString() })
-                        .toResponse()
-                }
-            }
-        })
-    })
-}
 r.options(`/`, async (req, params) => {
     return text('OK').toResponse()
 })
+const logger = () => {
+    let logs = []
+    let date = Date.now()
+    let key = `${date.getFullYear()}-${date.getMonth() +
+        1}-${date.getDate()}_${shortid()}`
+    return {
+        info: l => logs.push({ type: 'info', content: l }),
+        err: l => logs.push({ type: 'err', content: l }),
+        warn: l => logs.push({ type: 'warn', content: l }),
+        req: (method, url, ip) => logs.push({ type: 'req', method, url, ip }),
+        dump: () => ({ key, logs }),
+    }
+}
 
 async function handleRequest(request) {
-    return await r.route(request)
+    let log = logger()
+    log.req(
+        request.method,
+        request.url,
+        request.headers.get('CF-Connecting-IP')
+    )
+    let ret = await r.route(request, log)
+    let log_dump = log.dump()
+    bindings['logs'].set(log_dump.key, JSON.stringify(log_dump.logs))
+    return ret
 }

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = () => ({
     get: {
         '/foo/:bar': async (req, { bar }, { status }) => {
             return status(200).json({ hello: bar })
@@ -7,4 +7,4 @@ module.exports = {
             return status(404).json({ error: 'Not found' })
         },
     },
-}
+})

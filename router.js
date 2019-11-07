@@ -92,7 +92,7 @@ class Router {
         return this.handle([], handler)
     }
 
-    route(req) {
+    route(req, log) {
         const route = this.resolve(req)
 
         if (!!route) {
@@ -101,7 +101,7 @@ class Router {
             matches.forEach(m => {
                 params[m.key] = m.value
             })
-            return route.handler(req, params)
+            return route.handler(req, params, log)
         }
 
         return new Response('resource not found', {
