@@ -47,7 +47,7 @@ r.options(`/`, async (req, params) => {
 const logger = () => {
     let logs = []
     let date = Date.now()
-    let key = `${date.getFullYear()}-${date.getMonth() +
+    let key = `${date.getYear()}-${date.getMonth() +
         1}-${date.getDate()}_${shortid()}`
     return {
         info: l => logs.push({ type: 'info', content: l }),
@@ -59,14 +59,20 @@ const logger = () => {
 }
 
 async function handleRequest(request) {
-    let log = logger()
-    log.req(
-        request.method,
-        request.url,
-        request.headers.get('CF-Connecting-IP')
-    )
-    let ret = await r.route(request, log)
-    let log_dump = log.dump()
-    bindings['logs'].set(log_dump.key, JSON.stringify(log_dump.logs))
-    return ret
+    try {
+        let log = logger()
+        log.req(
+            request.method,
+            request.url,
+            request.headers.get('CF-Connecting-IP')
+        )
+        let ret = await r.route(request, log)
+        let log_dump = log.dump()
+        bindings['logs'].put(log_dump.key, JSON.stringify(log_dump.logs))
+        return ret
+    } catch (e) {
+        return new Response(e.toString(), {
+            status: 500,
+        })
+    }
 }
