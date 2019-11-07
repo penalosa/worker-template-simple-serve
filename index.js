@@ -46,8 +46,10 @@ r.options(`/`, async (req, params) => {
 })
 const logger = () => {
     let logs = []
-    let date = new Date()
-    let key = `${date.toLocaleString().replace(', ', '-')}_${shortid()}`
+    let now = new Date()
+    let future = new Date('2100')
+    let reversed = new Date(future - now)
+    let key = `${reversed.toJSON()}_${shortid()}`
     return {
         info: l => logs.push({ type: 'info', content: l }),
         err: l => logs.push({ type: 'err', content: l }),
