@@ -41,7 +41,7 @@ const r = new Router()
     })
 })
 
-r.options(`/`, async (req, params) => {
+r.options(`(.*)`, async (req, params) => {
     return text('OK').toResponse()
 })
 const logger = hostname => {
