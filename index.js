@@ -14,7 +14,7 @@ addEventListener('fetch', event => {
     event.respondWith(handleRequest(event.request))
 })
 const r = new Router()
-;[('get', 'post', 'put', 'delete')].forEach(method => {
+;['get', 'post', 'put', 'delete'].forEach(method => {
     if (!define[method]) {
         return
     }

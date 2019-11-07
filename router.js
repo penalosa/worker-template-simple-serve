@@ -103,7 +103,7 @@ class Router {
             })
             return route.handler(req, params, log)
         }
-
+        log.warn(`No route matches ${req.url}`)
         return new Response('resource not found', {
             status: 404,
             statusText: 'not found',
