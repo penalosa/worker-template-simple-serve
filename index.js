@@ -46,8 +46,8 @@ r.options(`/`, async (req, params) => {
 })
 const logger = () => {
     let logs = []
-    let date = Date.now()
-    let key = `${date.toLocaleDateString()}_${shortid()}`
+    let date = new Date()
+    let key = `${date.toLocaleString().split(' ')[0]}_${shortid()}`
     return {
         info: l => logs.push({ type: 'info', content: l }),
         err: l => logs.push({ type: 'err', content: l }),
