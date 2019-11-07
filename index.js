@@ -44,12 +44,12 @@ const r = new Router()
 r.options(`/`, async (req, params) => {
     return text('OK').toResponse()
 })
-const logger = () => {
+const logger = hostname => {
     let logs = []
     let now = new Date()
     let future = new Date('2100')
     let reversed = new Date(future - now)
-    let key = `${reversed.toJSON()}_${shortid()}`
+    let key = `${hostname}_${reversed.toJSON()}_${shortid()}`
     return {
         info: l => logs.push({ type: 'info', content: l }),
         err: l => logs.push({ type: 'err', content: l }),
@@ -61,12 +61,15 @@ const logger = () => {
 
 async function handleRequest(request) {
     try {
-        let log = logger()
+        let u = new URL(request.url)
+        let log = logger(u.hostname)
+
         log.req(
             request.method,
             request.url,
             request.headers.get('CF-Connecting-IP')
         )
+
         let ret = await r.route(request, log)
         let log_dump = log.dump()
         bindings['logs'].put(log_dump.key, JSON.stringify(log_dump.logs))
