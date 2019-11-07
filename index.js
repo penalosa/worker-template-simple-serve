@@ -4,7 +4,7 @@ const { status, json, text, html } = require('./simple-response')
 const bindings = require('./bindings.js')
 const define = require('./define.js').handlers(
     { status, json, text, html },
-    { bindings }
+    bindings
 )
 
 /**
