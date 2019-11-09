@@ -2,9 +2,11 @@ const Router = require('./router')
 const shortid = require('shortid')
 const { status, json, text, html } = require('./simple-response')
 const bindings = require('./bindings.js')
+const deps = require('./deps.js')
 const define = require('./define.js').handlers(
     { status, json, text, html },
-    bindings
+    bindings,
+    deps
 )
 
 /**
